@@ -50,6 +50,53 @@ function debounce(func, wait) {
 }
 
 // ----------------------------
+// Notification Helper Function
+// ----------------------------
+/**
+ * Shows a browser notification after requesting permission.
+ * @param {string} body The text to display in the notification.
+ * @param {string} iconUrl Optional URL for an icon.
+ */
+function showAttendanceNotification(body, iconUrl = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%2290%22 height=%2290%22 x=%225%22 y=%225%22 fill=%22%23fff%22 stroke=%22%23000%22 stroke-width=%2210%22/><path d=%22M30 50 L45 65 L70 35%22 stroke=%22%234caf50%22 stroke-width=%2210%22 fill=%22none%22/></svg>') {
+    if (!("Notification" in window)) {
+        console.error("This browser does not support desktop notification.");
+        return;
+    }
+
+    if (Notification.permission === "granted") {
+        new Notification("Attendance Tracker", { body: body, icon: iconUrl });
+    } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                new Notification("Attendance Tracker", { body: body, icon: iconUrl });
+            }
+        });
+    }
+}
+
+// ----------------------------
+// Geolocation Distance Helper Function
+// ----------------------------
+/**
+ * Calculates the distance between two lat/lon coordinates in meters.
+ * @param {{latitude: number, longitude: number}} loc1 First location.
+ * @param {{latitude: number, longitude: number}} loc2 Second location.
+ * @returns {number} Distance in meters.
+ */
+function calculateDistance(loc1, loc2) {
+    const R = 6371e3; // metres
+    const φ1 = loc1.latitude * Math.PI / 180;
+    const φ2 = loc2.latitude * Math.PI / 180;
+    const Δφ = (loc2.latitude - loc1.latitude) * Math.PI / 180;
+    const Δλ = (loc2.longitude - loc1.longitude) * Math.PI / 180;
+    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+              Math.cos(φ1) * Math.cos(φ2) *
+              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c; // in metres
+}
+
+// ----------------------------
 // Global Themes Variable
 // ----------------------------
 const themes = {
@@ -285,6 +332,9 @@ class AttendanceUI {
 
         // Initial UI update
         this.updateAll();
+        
+        // ** NEW: Automatically run location check on page load **
+        this.checkAndNotifyByLocation();
     }
 
     // ----------------------------
@@ -629,14 +679,12 @@ class AttendanceUI {
             document.getElementById('fgColor').value = this.optionsManager.options.foreground;
             document.getElementById('accentColor').value = this.optionsManager.options.accent;
             document.getElementById('themeSelect').value = 'default';
-            // Reset the attendance goal slider to 55%
             const slider = document.getElementById('attendanceGoalSlider');
             slider.value = 55;
             document.getElementById('attendanceGoalValue').textContent = "55%";
             this.attendanceGoalPercentage = 55;
             this.manager.requiredAttendance = Math.ceil(this.manager.workingDays * 0.55);
         });
-        // Bind the new attendance goal slider event
         document.getElementById('attendanceGoalSlider').addEventListener('input', (e) => {
             const goalPercentage = parseInt(e.target.value, 10);
             document.getElementById('attendanceGoalValue').textContent = goalPercentage + '%';
@@ -645,13 +693,55 @@ class AttendanceUI {
             this.optionsManager.updateOption('attendanceGoal', goalPercentage);
             this.updateAll();
         });
-        // Bind the new full data reset button event
         document.getElementById('resetFullDataBtn').addEventListener('click', () => {
             if (confirm("This will completely wipe all data and preferences. Are you sure?")) {
                 localStorage.clear();
                 location.reload();
             }
         });
+    }
+    
+    // Method to check location and send notification ---
+    checkAndNotifyByLocation() {
+        const officeLocation = {
+            latitude: -34.9027297, // WTC Free Zone, Montevideo
+            longitude: -56.1342857
+        };
+        const maxDistanceMeters = 500; // 500 meter radius
+
+        const alreadyMarked = this.manager.hasAttendance(this.today.getDate());
+        if (alreadyMarked) {
+             console.log("Attendance already marked, no location check needed.");
+             return;
+        }
+
+        if (!('geolocation' in navigator)) {
+            console.error("Geolocation is not supported by your browser.");
+            return;
+        }
+        
+        // This will trigger the browser's permission prompt on first use
+        navigator.geolocation.getCurrentPosition(
+            (position) => { // Success callback
+                const userLocation = {
+                    latitude: position.coords.latitude,
+                    longitude: position.coords.longitude
+                };
+                const distance = calculateDistance(officeLocation, userLocation);
+
+                console.log(`Distance from office: ${distance.toFixed(2)} meters.`);
+
+                if (distance <= maxDistanceMeters) {
+                    showAttendanceNotification("Looks like you're at the office. Don't forget to mark your attendance.");
+                }
+            },
+            (error) => { // Error callback
+                console.error("Geolocation error:", error.message);
+                if (error.code === error.PERMISSION_DENIED) {
+                    console.warn("Location permission was denied by the user.");
+                }
+            }
+        );
     }
 
     updateThemeSelect() {
@@ -699,7 +789,7 @@ class AttendanceUI {
     }
 
     // ----------------------------
-    // Binds global keydown events for Escape key to close log overlay or options menu
+    // Binds global keydown events for Escape key
     // ----------------------------
     bindGlobalKeydownEvents() {
         document.addEventListener('keydown', (e) => {
