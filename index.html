@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Attendance Tracker</title>
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%2290%22 height=%2290%22 x=%225%22 y=%225%22 fill=%22%23fff%22 stroke=%22%23000%22 stroke-width=%2210%22/><path d=%22M30 50 L45 65 L70 35%22 stroke=%22%234caf50%22 stroke-width=%2210%22 fill=%22none%22/></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+  <main>
+    <div class="container">
+      <h1 class="title">Attendance Tracker</h1>
+      <div class="brutalist-card" id="attendanceInfo">
+        <p class="card-title" id="monthYearInfo"></p>
+        <p class="card-content" id="workingDaysInfo"></p>
+        <p class="card-content" id="goalInfo"></p>
+        <p class="card-content" id="attendanceCount"></p>
+      </div>
+      <div class="calendar-container"></div>
+      <button class="brutalist-btn" id="markBtn">Mark today's attendance</button>
+      <button class="brutalist-btn" id="resetBtn">Reset attendance</button>
+      <button class="brutalist-btn" id="logBtn">Log</button>
+      <p class="card-content" id="statusMessage"></p>
+    </div>
+    <div class="progress-container">
+      <div class="brutalist-progress">
+        <div class="brutalist-progress-fill" id="progressFill" data-progress="0 / 0"></div>
+      </div>
+    </div>
+  </main>
+
+  <div class="gears-container">
+    <div class="gear-rotate"></div>
+  </div>
+
+  <div class="options-menu" id="optionsMenu">
+    <h2>Options</h2>
+    <div class="color-picker">
+      <label for="bgColor">Background</label>
+      <input type="color" id="bgColor" name="background" value="#fffbf7">
+    </div>
+    <div class="color-picker">
+      <label for="fgColor">Foreground</label>
+      <input type="color" id="fgColor" name="foreground" value="#45372b">
+    </div>
+    <div class="color-picker">
+      <label for="accentColor">Accent</label>
+      <input type="color" id="accentColor" name="accent" value="#df7020">
+    </div>
+    <div class="theme-container">
+      <label for="themeSelect">Theme</label>
+      <select id="themeSelect">
+        <option value="default">Sunlit Cream</option>
+        <option value="bsod">BSOD</option>
+        <option value="mint">Mint Condition</option>
+        <option value="windows-98">Windows 98</option>
+        <option value="dracula">Dracula</option>
+        <option value="ultra-violet">Ultra Violet</option>
+        <option value="hello-kitty">Hello Kitty</option>
+        <option value="matrix">Matrix</option>
+        <option value="dark-mode">Dark Mode</option>
+        <option value="terminal">Terminal</option>
+        <option value="custom">Custom</option>
+      </select>
+    </div>
+    <div class="attendance-goal-slider">
+      <label for="attendanceGoalSlider">Attendance goal</label>
+      <input type="range" id="attendanceGoalSlider" class="custom-slider" min="0" max="100" value="55">
+      <span id="attendanceGoalValue">55%</span>
+    </div>
+    <button class="brutalist-btn" id="reset-options" style="margin-top: 20px;">Reset options</button>
+    <div class="reset-full-data">
+      <button class="brutalist-btn" id="resetFullDataBtn">Reset all data</button>
+    </div>
+    <span class="version">v2.2.1</span>
+  </div>
+
+  <div class="overlay" id="logOverlay">
+    <div class="close-button-container">
+      <button class="close-button" id="closeLogOverlay">X</button>
+    </div>
+    <div class="content-container" id="logContent">
+      <div class="button-group" style="display: flex; gap: 50px;">
+        <button class="brutalist-btn" style="width: 50%;" id="exportCSVBtn">Export CSV</button>
+        <button class="brutalist-btn" style="width: 50%;" id="importCSVBtn">Import CSV</button>
+        <input type="file" id="importFileInput" accept=".csv" style="display: none;">
+      </div>
+      <div class="log-graph-container">
+        <div class="log-column" id="logColumn">
+          </div>
+        <div class="graph-column" id="graphColumn">
+          <h2 class="log-header">Attendance by Day of Week</h2>
+          <div id="graphWrapper">
+            </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/script.js" defer></script>
+</body>
+</html>
