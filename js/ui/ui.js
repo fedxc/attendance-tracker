@@ -284,7 +284,7 @@ export class AttendanceUI {
     }
 
     importCSV(csvText) {
-        const lines = csvText.trim().split('\n');
+        const lines = csvText.trim().split(/\r?\n/);
         if (lines.length < 2) {
             alert("CSV file is empty or missing data.");
             return;
