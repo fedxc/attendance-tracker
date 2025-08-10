@@ -684,6 +684,8 @@ class AttendanceUI {
             document.getElementById('attendanceGoalValue').textContent = "55%";
             this.attendanceGoalPercentage = 55;
             this.manager.requiredAttendance = Math.ceil(this.manager.workingDays * 0.55);
+            this.optionsManager.saveOptions();
+            this.updateAll();
         });
         document.getElementById('attendanceGoalSlider').addEventListener('input', (e) => {
             const goalPercentage = parseInt(e.target.value, 10);
