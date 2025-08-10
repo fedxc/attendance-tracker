@@ -37,6 +37,10 @@ function calculateWorkingDays(year, month) {
     return count;
 }
 
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { getHolidays, calculateWorkingDays };
+} else {
+
 // ----------------------------
 // Debounce Helper Function
 // ----------------------------
@@ -925,3 +929,5 @@ window.createFakeMarkData = function () {
         });
     }
 };
+
+}
