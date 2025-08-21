@@ -1,6 +1,7 @@
 import { OptionsManager } from './optionsManager.js';
+import { MapManager } from './mapManager.js';
 import { getHolidays } from '../attendance/utils.js';
-import { showAttendanceNotification, calculateDistance, themes } from '../helpers.js';
+import { themes } from '../helpers.js';
 
 export class AttendanceUI {
     constructor(manager, today) {
@@ -29,6 +30,9 @@ export class AttendanceUI {
         // Initialize Options Manager and bind options events
         this.optionsManager = new OptionsManager();
         this.bindOptionsEvents();
+        
+        // Initialize Map Manager (will be set up when notification manager is ready)
+        this.mapManager = null;
         document.getElementById('bgColor').value = this.optionsManager.options.background;
         document.getElementById('fgColor').value = this.optionsManager.options.foreground;
         document.getElementById('accentColor').value = this.optionsManager.options.accent;
@@ -48,9 +52,6 @@ export class AttendanceUI {
 
         // Initial UI update
         this.updateAll();
-        
-        // ** NEW: Automatically run location check on page load **
-        this.checkAndNotifyByLocation();
     }
 
     // ----------------------------
@@ -351,23 +352,45 @@ export class AttendanceUI {
         const optionsMenu = document.getElementById('optionsMenu');
         gearContainer.addEventListener('click', () => {
             optionsMenu.classList.toggle('open');
+            
+            // Move gear container into options menu when open
+            if (optionsMenu.classList.contains('open')) {
+                optionsMenu.insertBefore(gearContainer, optionsMenu.firstChild);
+            } else {
+                // Move gear container back to body when closed
+                document.body.appendChild(gearContainer);
+            }
         });
         document.addEventListener('click', (e) => {
             if (!optionsMenu.contains(e.target) && !gearContainer.contains(e.target)) {
                 optionsMenu.classList.remove('open');
+                // Move gear container back to body when closed
+                document.body.appendChild(gearContainer);
             }
         });
         document.getElementById('bgColor').addEventListener('input', (e) => {
             this.optionsManager.updateOption('background', e.target.value);
             this.updateThemeSelect();
+            // Update map theme if map manager exists
+            if (this.mapManager) {
+                setTimeout(() => this.mapManager.updateMapTheme(), 100);
+            }
         });
         document.getElementById('fgColor').addEventListener('input', (e) => {
             this.optionsManager.updateOption('foreground', e.target.value);
             this.updateThemeSelect();
+            // Update map theme if map manager exists
+            if (this.mapManager) {
+                setTimeout(() => this.mapManager.updateMapTheme(), 100);
+            }
         });
         document.getElementById('accentColor').addEventListener('input', (e) => {
             this.optionsManager.updateOption('accent', e.target.value);
             this.updateThemeSelect();
+            // Update map theme if map manager exists
+            if (this.mapManager) {
+                setTimeout(() => this.mapManager.updateMapTheme(), 100);
+            }
         });
         document.getElementById('themeSelect').addEventListener('change', (e) => {
             const selectedTheme = e.target.value;
@@ -381,6 +404,11 @@ export class AttendanceUI {
             document.getElementById('bgColor').value = this.optionsManager.options.background;
             document.getElementById('fgColor').value = this.optionsManager.options.foreground;
             document.getElementById('accentColor').value = this.optionsManager.options.accent;
+            
+            // Update map theme if map manager exists
+            if (this.mapManager) {
+                setTimeout(() => this.mapManager.updateMapTheme(), 100);
+            }
         });
         document.getElementById('reset-options').addEventListener('click', () => {
             localStorage.removeItem(this.optionsManager.storageKey);
@@ -415,50 +443,113 @@ export class AttendanceUI {
                 location.reload();
             }
         });
+        
+        // Bind notification settings events
+        this.bindNotificationEvents();
     }
     
-    // Method to check location and send notification ---
-    checkAndNotifyByLocation() {
-        const officeLocation = {
-            latitude: -34.9027297, // WTC Free Zone, Montevideo
-            longitude: -56.1342857
-        };
-        const maxDistanceMeters = 500; // 500 meter radius
-
-        const alreadyMarked = this.manager.hasAttendance(this.today.getDate());
-        if (alreadyMarked) {
-             console.log("Attendance already marked, no location check needed.");
-             return;
-        }
-
-        if (!('geolocation' in navigator)) {
-            console.error("Geolocation is not supported by your browser.");
+    // ----------------------------
+    // Binds notification settings events
+    // ----------------------------
+    bindNotificationEvents() {
+        // Get notification manager from global scope
+        const notificationManager = window.notificationManager;
+        
+        if (!notificationManager || !notificationManager.isReady()) {
+            console.log('Notification manager not ready, will retry...');
+            // Retry after a short delay to allow notification manager to initialize
+            setTimeout(() => this.bindNotificationEvents(), 200);
             return;
         }
         
-        // This will trigger the browser's permission prompt on first use
-        navigator.geolocation.getCurrentPosition(
-            (position) => { // Success callback
-                const userLocation = {
-                    latitude: position.coords.latitude,
-                    longitude: position.coords.longitude
-                };
-                const distance = calculateDistance(officeLocation, userLocation);
-
-                console.log(`Distance from office: ${distance.toFixed(2)} meters.`);
-
-                if (distance <= maxDistanceMeters) {
-                    showAttendanceNotification("Looks like you're at the office. Don't forget to mark your attendance.");
+        // Initialize Map Manager
+        if (!this.mapManager) {
+            this.mapManager = new MapManager(notificationManager);
+        } else {
+            // If map manager exists but map might not be initialized, try to reinitialize
+            setTimeout(() => {
+                if (this.mapManager) {
+                    this.mapManager.reinitializeMap();
                 }
-            },
-            (error) => { // Error callback
-                console.error("Geolocation error:", error.message);
-                if (error.code === error.PERMISSION_DENIED) {
-                    console.warn("Location permission was denied by the user.");
+            }, 100);
+        }
+        
+        // Load current settings
+        const settings = notificationManager.getSettings();
+        
+        // Set initial values
+        document.getElementById('enableNotifications').checked = settings.enabled;
+        document.getElementById('notificationDistance').value = settings.maxDistanceMeters;
+        document.getElementById('notificationDistanceValue').textContent = settings.maxDistanceMeters + 'm';
+        document.getElementById('notificationStartTime').value = 
+            String(settings.workingHours.start).padStart(2, '0') + ':00';
+        document.getElementById('notificationEndTime').value = 
+            String(settings.workingHours.end).padStart(2, '0') + ':00';
+        document.getElementById('notificationInterval').value = 
+            Math.floor(settings.checkInterval / (60 * 1000));
+        
+        // Bind events
+        document.getElementById('enableNotifications').addEventListener('change', (e) => {
+            const newSettings = {
+                enabled: e.target.checked
+            };
+            notificationManager.updateSettings(newSettings);
+        });
+        
+        document.getElementById('notificationDistance').addEventListener('input', (e) => {
+            const distance = parseInt(e.target.value, 10);
+            document.getElementById('notificationDistanceValue').textContent = distance + 'm';
+            notificationManager.updateSettings({ maxDistanceMeters: distance });
+        });
+        
+        document.getElementById('notificationStartTime').addEventListener('change', (e) => {
+            const time = e.target.value;
+            const hour = parseInt(time.split(':')[0], 10);
+            notificationManager.updateSettings({
+                workingHours: {
+                    ...notificationManager.getSettings().workingHours,
+                    start: hour
                 }
+            });
+        });
+        
+        document.getElementById('notificationEndTime').addEventListener('change', (e) => {
+            const time = e.target.value;
+            const hour = parseInt(time.split(':')[0], 10);
+            notificationManager.updateSettings({
+                workingHours: {
+                    ...notificationManager.getSettings().workingHours,
+                    end: hour
+                }
+            });
+        });
+        
+        document.getElementById('notificationInterval').addEventListener('change', (e) => {
+            const minutes = parseInt(e.target.value, 10);
+            const interval = minutes * 60 * 1000; // Convert to milliseconds
+            notificationManager.updateSettings({ checkInterval: interval });
+        });
+        
+        document.getElementById('testNotification').addEventListener('click', () => {
+            notificationManager.testNotification();
+        });
+        
+        document.getElementById('requestPermission').addEventListener('click', async () => {
+            const permission = await notificationManager.requestNotificationPermission();
+            if (permission === 'granted') {
+                alert('Notification permission granted!');
+            } else {
+                alert('Notification permission denied. Please enable notifications in your browser settings.');
             }
-        );
+        });
+        
+        document.getElementById('clearNotificationHistory').addEventListener('click', () => {
+            notificationManager.clearNotificationHistory();
+            alert('Notification history cleared! You can now receive notifications again today.');
+        });
     }
+    
+
 
     updateThemeSelect() {
         const bg = document.getElementById('bgColor').value.toLowerCase();

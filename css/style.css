@@ -131,9 +131,8 @@ textarea {
 }
 
 .options-menu .version {
-    position: absolute;
-    bottom: 10px;
-    right: 10px;
+    margin-top: 20px;
+    text-align: center;
     color: var(--color-text);
     font-size: 0.8rem;
     font-style: italic;
@@ -408,7 +407,7 @@ textarea {
     Gear Button & Options Menu
 --------------------------------------------- */
 .gears-container {
-    position: absolute;
+    position: fixed;
     top: 10px;
     right: 10px;
     width: 40px;
@@ -416,6 +415,18 @@ textarea {
     font-size: 8px;
     cursor: pointer;
     z-index: 1100;
+}
+
+.options-menu.open .gears-container {
+    position: relative;
+    top: auto;
+    right: auto;
+    margin-top: -10px;
+    margin-left: auto;
+    margin-right: -10px;
+    width: 40px;
+    height: 40px;
+    display: block;
 }
 
 .gear-rotate {
@@ -481,14 +492,16 @@ textarea {
 .options-menu {
     position: fixed;
     top: 0;
-    right: -300px;
-    width: 300px;
+    right: -325px;
+    width: 325px;
     height: 100%;
     background: var(--color-card-bg);
     border-left: 3px solid var(--color-border);
     transition: right 0.3s ease;
     z-index: 1090;
-    padding: 20px;
+    padding: 20px 20px 0 20px;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .options-menu.open {
@@ -497,15 +510,35 @@ textarea {
 }
 
 .options-menu h2 {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     font-size: 1.2rem;
+    margin-top: -10px;
+}
+
+/* Custom scrollbar for options menu */
+.options-menu::-webkit-scrollbar {
+    width: 8px;
+}
+
+.options-menu::-webkit-scrollbar-track {
+    background: var(--color-progress-bg);
+    border-radius: 4px;
+}
+
+.options-menu::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 4px;
+}
+
+.options-menu::-webkit-scrollbar-thumb:hover {
+    background: var(--color-progress-fill);
 }
 
 .options-menu .color-picker,
 .theme-container {
     display: flex;
     align-items: center;
-    margin-bottom: 15px;
+    margin-bottom: 5px;
     border: none;
 }
 
@@ -524,6 +557,9 @@ textarea {
     font-size: 0.9rem;
 }
 
+/* ---------------------------------------------
+    Custom Slider Styling
+--------------------------------------------- */
 .theme-container select {
     padding: 5px 10px;
     font-size: 0.9rem;
@@ -538,17 +574,36 @@ textarea {
     flex: initial;
 }
 
-/* ---------------------------------------------
-    Custom Slider Styling
---------------------------------------------- */
 /* Additional styles for new slider and reset full data button */
 .attendance-goal-slider {
-    margin-top: 15px;
-    margin-bottom: 15px;
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+/* Align distance slider with attendance goal slider */
+.notification-settings .attendance-goal-slider {
+    margin-left: 0;
+    padding-left: 0;
+}
+
+/* Ensure distance slider aligns horizontally with attendance goal slider */
+.notification-settings .attendance-goal-slider {
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.notification-settings .attendance-goal-slider input[type="range"] {
+    margin-left: 0;
+    padding-left: 0;
+}
+
+.notification-settings .attendance-goal-slider label {
+    margin-left: 0;
+    padding-left: 0;
 }
 
 .reset-full-data {
-    margin-bottom: 15px;
+    margin-bottom: 8px;
 }
 
 input[type="range"].custom-slider {
@@ -608,4 +663,287 @@ input[type="range"].custom-slider::-moz-range-thumb:hover {
     background: var(--color-btn-bw-hover);
     border-color: var(--color-btn-bw-hover);
     box-shadow: 5px 5px 0 0 var(--color-text);
+}
+
+/* ---------------------------------------------
+    Notification Settings Styling
+--------------------------------------------- */
+.notification-settings {
+    margin-top: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid var(--color-border);
+}
+
+.notification-settings h3 {
+    margin-bottom: 12px;
+    font-size: 1.2rem;
+    color: var(--color-text);
+}
+
+.setting-group {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+}
+
+.setting-group.compact {
+    margin-bottom: 8px;
+}
+
+.setting-group label {
+    font-size: 0.85rem;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.setting-group input[type="checkbox"] {
+    appearance: none;
+    width: 30px;
+    height: 30px;
+    background: var(--color-bg);
+    border: 2px solid var(--color-border);
+    border-radius: 0;
+    cursor: pointer;
+    position: relative;
+    margin: 0;
+    padding: 0;
+    flex-shrink: 0;
+    min-width: 30px;
+    min-height: 30px;
+    box-sizing: border-box;
+}
+
+.setting-group input[type="checkbox"]:checked {
+    background: var(--color-progress-fill);
+    border: 2px solid var(--color-border);
+    position: relative;
+}
+
+.setting-group input[type="checkbox"]:checked::after {
+    content: "✓";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--color-bg);
+    font-size: 30px;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.setting-group input[type="checkbox"]:hover {
+    border: 2px solid var(--color-border);
+}
+
+.setting-group input[type="checkbox"]:checked:hover {
+    background: var(--color-progress-fill);
+    border: 2px solid var(--color-border);
+}
+
+.setting-group input[type="checkbox"]:focus {
+    border: 2px solid var(--color-border);
+    outline: none;
+}
+
+.setting-group input[type="checkbox"]:active {
+    border: 2px solid var(--color-border);
+}
+
+.setting-group label[for="enableNotifications"] {
+    cursor: default;
+    pointer-events: none;
+}
+
+.setting-group label[for="enableNotifications"] input[type="checkbox"] {
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+.setting-group input[type="time"] {
+    padding: 4px 8px;
+    font-size: 0.85rem;
+    border: 2px solid var(--color-border);
+    background: var(--color-card-bg);
+    color: var(--color-text);
+    width: 100%;
+    font-family: "Fira Code", monospace;
+}
+
+.setting-group select {
+    padding: 4px 8px;
+    font-size: 0.85rem;
+    border: 2px solid var(--color-border);
+    background: var(--color-card-bg);
+    color: var(--color-text);
+    width: 100%;
+    font-family: "Fira Code", monospace;
+}
+
+/* Make the "Check every" setting group inline */
+.setting-group:has(select[id="notificationInterval"]) {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    justify-content: space-between;
+    margin-top: 15px;
+    margin-bottom: 15px;
+}
+
+.setting-group:has(select[id="notificationInterval"]) label {
+    margin-bottom: 0;
+    flex-shrink: 0;
+}
+
+.setting-group:has(select[id="notificationInterval"]) select {
+    width: auto;
+    min-width: 120px;
+    margin-left: auto;
+}
+
+.setting-group input[type="range"] {
+    margin: 8px 0 6px 0;
+}
+
+#notificationDistanceValue,
+#attendanceGoalValue {
+    font-size: 0.8rem;
+    color: var(--color-text);
+    margin-top: 4px;
+    text-align: center;
+}
+
+.settings-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.settings-row .setting-group {
+    flex: 1;
+    margin-bottom: 0;
+}
+
+.button-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.button-row .brutalist-btn {
+    flex: 1;
+    margin-bottom: 0;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    min-height: auto;
+    border: 2px solid var(--color-border);
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.notification-settings .brutalist-btn.compact {
+    width: auto;
+    margin-bottom: 0;
+    font-size: 0.75rem;
+    padding: 4px 8px;
+    min-height: auto;
+    border: 2px solid var(--color-border);
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.button-row .brutalist-btn:hover,
+.notification-settings .brutalist-btn.compact:hover {
+    background: var(--color-btn-bw-hover);
+    color: var(--color-bg);
+    border-color: var(--color-btn-bw-hover);
+    box-shadow: 5px 5px 0 0 var(--color-text);
+}
+
+/* ---------------------------------------------
+    Map Container Styling
+--------------------------------------------- */
+.map-container {
+    margin-top: 5px;
+    border: 2px solid var(--color-border);
+    background: var(--color-card-bg);
+}
+
+#officeLocationMap {
+    width: 100%;
+    height: 200px;
+    border-bottom: 2px solid var(--color-border);
+}
+
+.map-controls {
+    display: flex;
+    gap: 8px;
+    padding: 10px;
+    border-bottom: 2px solid var(--color-border);
+}
+
+.map-controls .brutalist-btn.compact {
+    flex: 1;
+    margin-bottom: 0;
+    font-size: 0.7rem;
+    padding: 6px 8px;
+    min-height: auto;
+    border: 2px solid var(--color-border);
+}
+
+.coordinates-display {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 10px;
+    font-size: 0.8rem;
+    font-family: "Fira Code", monospace;
+    background: var(--color-progress-bg);
+}
+
+.coordinates-display span {
+    color: var(--color-text);
+}
+
+/* Override Leaflet default styles to match brutalist theme */
+.leaflet-container {
+    font-family: "Fira Code", monospace !important;
+}
+
+.leaflet-popup-content-wrapper {
+    background: var(--color-card-bg) !important;
+    border: 3px solid var(--color-border) !important;
+    border-radius: 0 !important;
+    box-shadow: 5px 5px 0 0 var(--color-text) !important;
+}
+
+.leaflet-popup-content {
+    color: var(--color-text) !important;
+    font-family: "Fira Code", monospace !important;
+    font-size: 0.9rem !important;
+}
+
+.leaflet-popup-tip {
+    background: var(--color-card-bg) !important;
+    border: 3px solid var(--color-border) !important;
+    border-radius: 0 !important;
+}
+
+.leaflet-control-zoom a {
+    background: var(--color-card-bg) !important;
+    border: 2px solid var(--color-border) !important;
+    border-radius: 0 !important;
+    color: var(--color-text) !important;
+    font-family: "Fira Code", monospace !important;
+    font-weight: bold !important;
+}
+
+.leaflet-control-zoom a:hover {
+    background: var(--color-btn-bw-hover) !important;
+    color: var(--color-bg) !important;
+    border-color: var(--color-btn-bw-hover) !important;
+    box-shadow: 3px 3px 0 0 var(--color-text) !important;
+}
+
+/* Add minimal bottom padding to ensure last elements are accessible */
+.options-menu {
+    padding-bottom: 10px;
 }

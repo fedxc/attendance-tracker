@@ -50,3 +50,68 @@ export const themes = {
     'terminal': { background: '#1a170f', foreground: '#eceae5', accent: '#eec35e' }
 };
 
+// Cache management utilities
+export const cacheManager = {
+    // Clear all caches
+    async clearAllCaches() {
+        if ('caches' in window) {
+            const cacheNames = await caches.keys();
+            await Promise.all(
+                cacheNames.map(cacheName => caches.delete(cacheName))
+            );
+            console.log('All caches cleared');
+        }
+    },
+
+    // Clear specific cache
+    async clearCache(cacheName) {
+        if ('caches' in window) {
+            await caches.delete(cacheName);
+            console.log(`Cache ${cacheName} cleared`);
+        }
+    },
+
+    // Force reload without cache
+    forceReload() {
+        // Clear browser cache for this page
+        window.location.reload(true);
+    },
+
+    // Add cache busting parameter to URL
+    addCacheBuster(url, version = Date.now()) {
+        const urlObj = new URL(url, window.location.href);
+        urlObj.searchParams.set('v', version);
+        return urlObj.toString();
+    },
+
+    // Update service worker
+    async updateServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations) {
+                await registration.update();
+            }
+            console.log('Service worker updated');
+        }
+    },
+
+    // Clear all storage
+    clearAllStorage() {
+        // Clear localStorage
+        localStorage.clear();
+        
+        // Clear sessionStorage
+        sessionStorage.clear();
+        
+        // Clear IndexedDB (if available)
+        if ('indexedDB' in window) {
+            indexedDB.databases().then(databases => {
+                databases.forEach(db => {
+                    indexedDB.deleteDatabase(db.name);
+                });
+            });
+        }
+        
+        console.log('All storage cleared');
+    }
+};

@@ -2,6 +2,7 @@ import { AttendanceHistory } from './attendance/history.js';
 import { AttendanceManager } from './attendance/manager.js';
 import { AttendanceUI } from './ui/ui.js';
 import { NotificationManager } from './notificationManager.js';
+import { cacheManager } from './helpers.js';
 
 const today = new Date();
 const year = today.getFullYear();
@@ -48,6 +49,23 @@ document.addEventListener("visibilitychange", () => {
     }
 });
 
+// Cache management event handlers
+document.addEventListener('DOMContentLoaded', () => {
+    const clearCacheBtn = document.getElementById('clearCacheBtn');
+    if (clearCacheBtn) {
+        clearCacheBtn.addEventListener('click', async () => {
+            try {
+                await cacheManager.clearAllCaches();
+                await cacheManager.updateServiceWorker();
+                alert('Cache cleared successfully! The page will reload to apply changes.');
+                cacheManager.forceReload();
+            } catch (error) {
+                console.error('Error clearing cache:', error);
+                alert('Error clearing cache. Please try again.');
+            }
+        });
+    }
+});
 
 // Optional Helper Functions for Testing
 window.clearAttendance = () => {
@@ -104,24 +122,3 @@ window.createFakeMarkData = function () {
         });
     }
 };
-
-
-// Simple cache clearing
-document.addEventListener("DOMContentLoaded", () => {
-    const clearCacheBtn = document.getElementById("clearCacheBtn");
-    if (clearCacheBtn) {
-        clearCacheBtn.addEventListener("click", async () => {
-            try {
-                if ("caches" in window) {
-                    const cacheNames = await caches.keys();
-                    await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
-                }
-                alert("Cache cleared! The page will reload.");
-                window.location.reload(true);
-            } catch (error) {
-                console.error("Error clearing cache:", error);
-                alert("Error clearing cache. Please try again.");
-            }
-        });
-    }
-});
