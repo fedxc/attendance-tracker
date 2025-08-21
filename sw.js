@@ -29,17 +29,17 @@ self.addEventListener('install', (event) => {
         caches.open(CACHE_NAME)
             .then(cache => {
                 return cache.addAll([
-                    '/',
-                    '/index.html',
-                    '/css/style.css?v=2.2.2',
-                    '/js/main.js?v=2.2.2',
-                    '/js/helpers.js',
-                    '/js/attendance/history.js',
-                    '/js/attendance/manager.js',
-                    '/js/attendance/utils.js',
-                    '/js/ui/ui.js',
-                    '/js/ui/optionsManager.js',
-                    '/js/ui/mapManager.js'
+                    './',
+                    './index.html',
+                    './css/style.css?v=2.2.2',
+                    './js/main.js?v=2.2.2',
+                    './js/helpers.js',
+                    './js/attendance/history.js',
+                    './js/attendance/manager.js',
+                    './js/attendance/utils.js',
+                    './js/ui/ui.js',
+                    './js/ui/optionsManager.js',
+                    './js/ui/mapManager.js'
                 ]);
             })
     );
@@ -155,12 +155,18 @@ function checkLocationNow(settings = DEFAULT_SETTINGS) {
     // Service workers can't access geolocation directly
     // Instead, we'll request the main app to check location
     self.clients.matchAll().then(clients => {
-        clients.forEach(client => {
-            client.postMessage({
-                type: 'CHECK_LOCATION_REQUEST',
-                data: settings
+        if (clients.length > 0) {
+            clients.forEach(client => {
+                client.postMessage({
+                    type: 'CHECK_LOCATION_REQUEST',
+                    data: settings
+                });
             });
-        });
+        } else {
+            console.log('No clients available for location check');
+        }
+    }).catch(error => {
+        console.error('Error checking location:', error);
     });
 }
 

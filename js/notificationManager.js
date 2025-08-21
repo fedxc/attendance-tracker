@@ -20,27 +20,29 @@ export class NotificationManager {
     // Initialize the notification system
     async init() {
         try {
-            await this.registerServiceWorker();
+            const registration = await this.registerServiceWorker();
             await this.requestNotificationPermission();
             this.setupMessageListener();
             
             // Signal that initialization is complete
             this.initialized = true;
             
-            if (this.settings.enabled) {
+            if (this.settings.enabled && registration) {
                 this.startMonitoring();
             }
             
             console.log('Notification manager initialized successfully');
         } catch (error) {
             console.error('Failed to initialize notification system:', error);
+            // Still mark as initialized so the app can function without service worker
+            this.initialized = true;
         }
     }
     
     // Register the service worker
     async registerServiceWorker() {
         try {
-            const registration = await navigator.serviceWorker.register('/sw.js');
+            const registration = await navigator.serviceWorker.register('./sw.js');
             this.serviceWorker = registration;
             
             console.log('Service Worker registered successfully:', registration);
@@ -59,7 +61,7 @@ export class NotificationManager {
             return registration;
         } catch (error) {
             console.error('Service Worker registration failed:', error);
-            throw error;
+            return null;
         }
     }
     
@@ -265,6 +267,8 @@ export class NotificationManager {
         return R * c; // Distance in meters
     }
     
+
+    
     // Check if attendance is already marked for today
     async checkAttendanceStatus() {
         try {
@@ -430,4 +434,6 @@ export class NotificationManager {
     isReady() {
         return this.initialized && this.isSupported;
     }
+    
+
 }
