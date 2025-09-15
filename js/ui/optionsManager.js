@@ -1,14 +1,13 @@
-// Default attendance goal percentage
-const DEFAULT_ATTENDANCE_GOAL = 55;
+import { CONFIG } from '../helpers.js';
 
 export class OptionsManager {
     constructor() {
-        this.storageKey = 'customOptions';
+        this.storageKey = CONFIG.STORAGE_KEYS.CUSTOM_OPTIONS;
         this.options = {
             background: getComputedStyle(document.documentElement).getPropertyValue('--color-bg').trim(),
             foreground: getComputedStyle(document.documentElement).getPropertyValue('--color-text').trim(),
             accent: getComputedStyle(document.documentElement).getPropertyValue('--color-progress-fill').trim(),
-            attendanceGoal: DEFAULT_ATTENDANCE_GOAL
+            attendanceGoal: CONFIG.DEFAULT_ATTENDANCE_GOAL
         };
         this.loadOptions();
     }

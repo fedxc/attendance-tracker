@@ -1,9 +1,8 @@
 import { OptionsManager } from './optionsManager.js';
 import { getHolidays } from '../attendance/utils.js';
-import { themes } from '../helpers.js';
-
-// Default attendance goal percentage
-const DEFAULT_ATTENDANCE_GOAL = 55;
+import { themes, CONFIG } from '../helpers.js';
+import { ErrorHandler } from '../utils/ErrorHandler.js';
+import { Validation } from '../utils/Validation.js';
 
 export class AttendanceUI {
     constructor(manager, today) {
@@ -12,7 +11,9 @@ export class AttendanceUI {
         this.monthName = today.toLocaleString('default', { month: 'long' });
         this.hasCelebrated = false;
         // Default attendance goal percentage (set by the slider)
-        this.attendanceGoalPercentage = DEFAULT_ATTENDANCE_GOAL;
+        this.attendanceGoalPercentage = CONFIG.DEFAULT_ATTENDANCE_GOAL;
+        this.sliderTimeout = null; // For debouncing slider updates
+        this.eventListeners = []; // Track event listeners for cleanup
 
         // Cache DOM elements for attendance info
         this.monthYearInfo = document.getElementById('monthYearInfo');
@@ -40,7 +41,7 @@ export class AttendanceUI {
         slider.value = this.optionsManager.options.attendanceGoal;
         document.getElementById('attendanceGoalValue').textContent = this.optionsManager.options.attendanceGoal + '%';
         this.attendanceGoalPercentage = this.optionsManager.options.attendanceGoal;
-        this.manager.requiredAttendance = Math.floor(this.manager.workingDays * (this.attendanceGoalPercentage / 100));
+        this.manager.updateGoalPercentage(this.attendanceGoalPercentage);
         this.updateThemeSelect();
 
         // Bind log overlay events
@@ -58,9 +59,13 @@ export class AttendanceUI {
     // ----------------------------
     bindEvents() {
         this.markBtn.addEventListener('click', () => {
-            if (!this.manager.hasAttendance(this.today.getDate())) {
-                this.manager.addAttendance(this.today.getDate());
-                this.updateAll();
+            try {
+                if (!this.manager.hasAttendance(this.today.getDate())) {
+                    this.manager.addAttendance(this.today.getDate());
+                    this.updateAll();
+                }
+            } catch (error) {
+                ErrorHandler.handle(error, 'mark attendance button');
             }
         });
         this.resetBtn.addEventListener('click', () => {
@@ -72,10 +77,14 @@ export class AttendanceUI {
         });
         this.logBtn.addEventListener('click', () => this.showLogOverlay());
         this.calendarContainer.addEventListener('click', (e) => {
-            if (e.target && e.target.tagName === 'TD' && e.target.textContent) {
-                const day = parseInt(e.target.textContent, 10);
-                this.manager.toggleAttendance(day);
-                this.updateAll();
+            try {
+                if (e.target && e.target.tagName === 'TD' && e.target.textContent) {
+                    const day = parseInt(e.target.textContent, 10);
+                    this.manager.toggleAttendance(day);
+                    this.updateAll();
+                }
+            } catch (error) {
+                ErrorHandler.handle(error, 'calendar day click');
             }
         });
     }
@@ -117,7 +126,7 @@ export class AttendanceUI {
         const count = this.manager.getCount();
         const prevAngle = parseFloat(getComputedStyle(this.progressFill).getPropertyValue('--progress-angle')) || 0;
         const progressAngle = (count / this.manager.requiredAttendance) * 360;
-        this.animateProgress(prevAngle, progressAngle, 300);
+        this.animateProgress(prevAngle, progressAngle, CONFIG.ANIMATION_DURATION);
         this.progressFill.setAttribute('data-progress', `${count} / ${this.manager.requiredAttendance}`);
     }
 
@@ -134,6 +143,8 @@ export class AttendanceUI {
     }
 
     updateCalendar() {
+        // Use document fragment for better performance
+        const fragment = document.createDocumentFragment();
         this.calendarContainer.innerHTML = '';
         const table = document.createElement('table');
         const header = document.createElement('tr');
@@ -143,7 +154,7 @@ export class AttendanceUI {
             th.textContent = day;
             header.appendChild(th);
         });
-        table.appendChild(header);
+        fragment.appendChild(header);
         const firstDay = new Date(this.manager.year, this.manager.month, 1).getDay();
         const daysInMonth = new Date(this.manager.year, this.manager.month + 1, 0).getDate();
         let row = document.createElement('tr');
@@ -154,7 +165,7 @@ export class AttendanceUI {
         }
         for (let d = 1; d <= daysInMonth; d++) {
             if ((firstDay + d - 1) % 7 === 0 && d !== 1) {
-                table.appendChild(row);
+                fragment.appendChild(row);
                 row = document.createElement('tr');
             }
             const cell = document.createElement('td');
@@ -178,7 +189,8 @@ export class AttendanceUI {
             cell.textContent = '';
             row.appendChild(cell);
         }
-        table.appendChild(row);
+        fragment.appendChild(row);
+        table.appendChild(fragment);
         this.calendarContainer.appendChild(table);
     }
 
@@ -219,7 +231,7 @@ export class AttendanceUI {
         const graphWrapper = document.getElementById('graphWrapper');
         logColumn.innerHTML = '';
         graphWrapper.innerHTML = '';
-        const history = JSON.parse(localStorage.getItem('attendanceHistory')) || {};
+        const history = this.manager.attendanceHistory.getAllData();
         const sortedMonthKeys = Object.keys(history).sort((a, b) => b.localeCompare(a));
         sortedMonthKeys.forEach(monthKey => {
             const monthHeader = document.createElement('h2');
@@ -266,7 +278,7 @@ export class AttendanceUI {
     }
 
     exportCSV() {
-        const history = JSON.parse(localStorage.getItem('attendanceHistory')) || {};
+        const history = this.manager.attendanceHistory.getAllData();
         let csvContent = "year,month,day\n";
         for (const monthKey in history) {
             history[monthKey].forEach(entry => {
@@ -297,15 +309,17 @@ export class AttendanceUI {
         let importedCount = 0;
         let duplicateCount = 0;
         let errorCount = 0;
-        const historyData = JSON.parse(localStorage.getItem('attendanceHistory')) || {};
+        const historyData = this.manager.attendanceHistory.getAllData();
         for (let i = 1; i < lines.length; i++) {
             const line = lines[i].trim();
             if (line === "") continue;
-            const parts = line.split(',');
-            if (parts.length !== 3) {
+            
+            if (!Validation.validateCSVLine(line)) {
                 errorCount++;
                 continue;
             }
+            
+            const parts = line.split(',');
             let [yearStr, monthStr, dayStr] = parts;
             const year = parseInt(yearStr, 10);
             const month = parseInt(monthStr, 10);
@@ -314,7 +328,8 @@ export class AttendanceUI {
                 errorCount++;
                 continue;
             }
-            if (month < 1 || month > 12 || day < 1 || day > 31) {
+            
+            if (!Validation.validateDate(year, month - 1, day)) {
                 errorCount++;
                 continue;
             }
@@ -331,7 +346,7 @@ export class AttendanceUI {
             historyData[monthKey].push({ year: year, month: month, day: day });
             importedCount++;
         }
-        localStorage.setItem('attendanceHistory', JSON.stringify(historyData));
+        this.manager.attendanceHistory.setAllData(historyData);
         let message = `Import complete. ${importedCount} entries imported.`;
         if (duplicateCount > 0) {
             message += ` ${duplicateCount} duplicate entr${duplicateCount === 1 ? 'y' : 'ies'} were skipped.`;
@@ -399,7 +414,7 @@ export class AttendanceUI {
                 background: '#fffbf7',
                 foreground: '#45372b',
                 accent: '#df7020',
-                attendanceGoal: DEFAULT_ATTENDANCE_GOAL
+                attendanceGoal: CONFIG.DEFAULT_ATTENDANCE_GOAL
             };
             this.optionsManager.applyOptions();
             document.getElementById('bgColor').value = this.optionsManager.options.background;
@@ -407,18 +422,29 @@ export class AttendanceUI {
             document.getElementById('accentColor').value = this.optionsManager.options.accent;
             document.getElementById('themeSelect').value = 'default';
             const slider = document.getElementById('attendanceGoalSlider');
-            slider.value = DEFAULT_ATTENDANCE_GOAL;
-            document.getElementById('attendanceGoalValue').textContent = DEFAULT_ATTENDANCE_GOAL + "%";
-            this.attendanceGoalPercentage = DEFAULT_ATTENDANCE_GOAL;
-            this.manager.requiredAttendance = Math.floor(this.manager.workingDays * (DEFAULT_ATTENDANCE_GOAL / 100));
+            slider.value = CONFIG.DEFAULT_ATTENDANCE_GOAL;
+            document.getElementById('attendanceGoalValue').textContent = CONFIG.DEFAULT_ATTENDANCE_GOAL + "%";
+            this.attendanceGoalPercentage = CONFIG.DEFAULT_ATTENDANCE_GOAL;
+            this.manager.updateGoalPercentage(CONFIG.DEFAULT_ATTENDANCE_GOAL);
         });
         document.getElementById('attendanceGoalSlider').addEventListener('input', (e) => {
-            const goalPercentage = parseInt(e.target.value, 10);
-            document.getElementById('attendanceGoalValue').textContent = goalPercentage + '%';
-            this.attendanceGoalPercentage = goalPercentage;
-            this.manager.requiredAttendance = Math.floor(this.manager.workingDays * (goalPercentage / 100));
-            this.optionsManager.updateOption('attendanceGoal', goalPercentage);
-            this.updateAll();
+            try {
+                const goalPercentage = parseInt(e.target.value, 10);
+                document.getElementById('attendanceGoalValue').textContent = goalPercentage + '%';
+                this.attendanceGoalPercentage = goalPercentage;
+                
+                // Debounce the expensive operations
+                if (this.sliderTimeout) {
+                    clearTimeout(this.sliderTimeout);
+                }
+                this.sliderTimeout = setTimeout(() => {
+                    this.manager.updateGoalPercentage(goalPercentage);
+                    this.optionsManager.updateOption('attendanceGoal', goalPercentage);
+                    this.updateAll();
+                }, 150); // 150ms debounce
+            } catch (error) {
+                ErrorHandler.handle(error, 'attendance goal slider');
+            }
         });
         document.getElementById('resetFullDataBtn').addEventListener('click', () => {
             if (confirm("This will completely wipe all data and preferences. Are you sure?")) {
@@ -495,7 +521,7 @@ export class AttendanceUI {
     }
 
     throwConfetti() {
-        const confettiCount = 150;
+        const confettiCount = CONFIG.CONFETTI_COUNT;
         const colors = ['#FFC700', '#FF0000', '#2E3192', '#41BBC7', '#7F00FF'];
         document.body.style.overflow = "hidden";
         document.documentElement.style.overflow = "hidden";
@@ -523,5 +549,21 @@ export class AttendanceUI {
                 }
             }, 3000);
         }
+    }
+
+    /**
+     * Clean up event listeners and timeouts to prevent memory leaks
+     */
+    destroy() {
+        // Clear any pending timeouts
+        if (this.sliderTimeout) {
+            clearTimeout(this.sliderTimeout);
+        }
+
+        // Remove all tracked event listeners
+        this.eventListeners.forEach(({ element, event, handler }) => {
+            element.removeEventListener(event, handler);
+        });
+        this.eventListeners = [];
     }
 }

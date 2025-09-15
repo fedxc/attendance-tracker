@@ -1,5 +1,17 @@
 // General helper functions and constants
 
+// Centralized configuration - single source of truth
+export const CONFIG = {
+    DEFAULT_ATTENDANCE_GOAL: 55,
+    RELOAD_INTERVAL_MINUTES: 60,
+    CONFETTI_COUNT: 150,
+    ANIMATION_DURATION: 300,
+    STORAGE_KEYS: {
+        ATTENDANCE_HISTORY: 'attendanceHistory',
+        CUSTOM_OPTIONS: 'customOptions',
+        LAST_RELOAD: 'lastReload'
+    }
+};
 
 export const themes = {
     'default': { background: '#fffbf7', foreground: '#45372b', accent: '#df7020' },
