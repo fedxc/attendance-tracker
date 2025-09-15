@@ -4,5 +4,12 @@
   "type": "module",
   "scripts": {
     "test": "node --test",
-  }
+    "test:all": "node tests/run-all-tests.js",
+    "test:unit": "node --test tests/*.test.js",
+    "test:coverage": "node --test --experimental-test-coverage tests/*.test.js"
+  },
+  "description": "A modern, client-side web application for tracking daily attendance",
+  "keywords": ["attendance", "tracker", "calendar", "productivity", "web-app"],
+  "author": "Your Name",
+  "license": "MIT"
 }
