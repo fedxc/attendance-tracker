@@ -41,7 +41,7 @@ export class AttendanceUI {
         slider.value = this.optionsManager.options.attendanceGoal;
         document.getElementById('attendanceGoalValue').textContent = this.optionsManager.options.attendanceGoal + '%';
         this.attendanceGoalPercentage = this.optionsManager.options.attendanceGoal;
-        this.manager.requiredAttendance = Math.ceil(this.manager.workingDays * (this.attendanceGoalPercentage / 100));
+        this.manager.requiredAttendance = Math.floor(this.manager.workingDays * (this.attendanceGoalPercentage / 100));
         this.updateThemeSelect();
 
         // Bind log overlay events
@@ -427,13 +427,13 @@ export class AttendanceUI {
             slider.value = 55;
             document.getElementById('attendanceGoalValue').textContent = "55%";
             this.attendanceGoalPercentage = 55;
-            this.manager.requiredAttendance = Math.ceil(this.manager.workingDays * 0.55);
+            this.manager.requiredAttendance = Math.floor(this.manager.workingDays * 0.55);
         });
         document.getElementById('attendanceGoalSlider').addEventListener('input', (e) => {
             const goalPercentage = parseInt(e.target.value, 10);
             document.getElementById('attendanceGoalValue').textContent = goalPercentage + '%';
             this.attendanceGoalPercentage = goalPercentage;
-            this.manager.requiredAttendance = Math.ceil(this.manager.workingDays * (goalPercentage / 100));
+            this.manager.requiredAttendance = Math.floor(this.manager.workingDays * (goalPercentage / 100));
             this.optionsManager.updateOption('attendanceGoal', goalPercentage);
             this.updateAll();
         });
