@@ -1,41 +1,5 @@
 // General helper functions and constants
-export function debounce(func, wait) {
-    let timeout;
-    return function(...args) {
-        const context = this;
-        clearTimeout(timeout);
-        timeout = setTimeout(() => func.apply(context, args), wait);
-    };
-}
 
-export function showAttendanceNotification(body, iconUrl = 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%2290%25%22 height=%2290%25%22 x=%225%25%22 y=%225%25%22 fill=%22%23fff%22 stroke=%22%23000%22 stroke-width=%2210%25%22/><path d=%22M30 50 L45 65 L70 35%22 stroke=%22%234caf50%22 stroke-width=%2210%22 fill=%22none%22/></svg>') {
-    if (!("Notification" in window)) {
-        console.error("This browser does not support desktop notification.");
-        return;
-    }
-    if (Notification.permission === "granted") {
-        new Notification("Attendance Tracker", { body: body, icon: iconUrl });
-    } else if (Notification.permission !== "denied") {
-        Notification.requestPermission().then(permission => {
-            if (permission === "granted") {
-                new Notification("Attendance Tracker", { body: body, icon: iconUrl });
-            }
-        });
-    }
-}
-
-export function calculateDistance(loc1, loc2) {
-    const R = 6371e3; // metres
-    const φ1 = loc1.latitude * Math.PI / 180;
-    const φ2 = loc2.latitude * Math.PI / 180;
-    const Δφ = (loc2.latitude - loc1.latitude) * Math.PI / 180;
-    const Δλ = (loc2.longitude - loc1.longitude) * Math.PI / 180;
-    const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
-              Math.cos(φ1) * Math.cos(φ2) *
-              Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    return R * c; // in metres
-}
 
 export const themes = {
     'default': { background: '#fffbf7', foreground: '#45372b', accent: '#df7020' },

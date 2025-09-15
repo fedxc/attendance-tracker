@@ -1,7 +1,9 @@
 import { OptionsManager } from './optionsManager.js';
-import { MapManager } from './mapManager.js';
 import { getHolidays } from '../attendance/utils.js';
 import { themes } from '../helpers.js';
+
+// Default attendance goal percentage
+const DEFAULT_ATTENDANCE_GOAL = 55;
 
 export class AttendanceUI {
     constructor(manager, today) {
@@ -10,7 +12,7 @@ export class AttendanceUI {
         this.monthName = today.toLocaleString('default', { month: 'long' });
         this.hasCelebrated = false;
         // Default attendance goal percentage (set by the slider)
-        this.attendanceGoalPercentage = 55;
+        this.attendanceGoalPercentage = DEFAULT_ATTENDANCE_GOAL;
 
         // Cache DOM elements for attendance info
         this.monthYearInfo = document.getElementById('monthYearInfo');
@@ -30,9 +32,6 @@ export class AttendanceUI {
         // Initialize Options Manager and bind options events
         this.optionsManager = new OptionsManager();
         this.bindOptionsEvents();
-        
-        // Initialize Map Manager (will be set up when notification manager is ready)
-        this.mapManager = null;
         document.getElementById('bgColor').value = this.optionsManager.options.background;
         document.getElementById('fgColor').value = this.optionsManager.options.foreground;
         document.getElementById('accentColor').value = this.optionsManager.options.accent;
@@ -344,6 +343,7 @@ export class AttendanceUI {
         location.reload();
     }
 
+
     // ----------------------------
     // Binds options menu and color picker events
     // ----------------------------
@@ -371,26 +371,14 @@ export class AttendanceUI {
         document.getElementById('bgColor').addEventListener('input', (e) => {
             this.optionsManager.updateOption('background', e.target.value);
             this.updateThemeSelect();
-            // Update map theme if map manager exists
-            if (this.mapManager) {
-                setTimeout(() => this.mapManager.updateMapTheme(), 100);
-            }
         });
         document.getElementById('fgColor').addEventListener('input', (e) => {
             this.optionsManager.updateOption('foreground', e.target.value);
             this.updateThemeSelect();
-            // Update map theme if map manager exists
-            if (this.mapManager) {
-                setTimeout(() => this.mapManager.updateMapTheme(), 100);
-            }
         });
         document.getElementById('accentColor').addEventListener('input', (e) => {
             this.optionsManager.updateOption('accent', e.target.value);
             this.updateThemeSelect();
-            // Update map theme if map manager exists
-            if (this.mapManager) {
-                setTimeout(() => this.mapManager.updateMapTheme(), 100);
-            }
         });
         document.getElementById('themeSelect').addEventListener('change', (e) => {
             const selectedTheme = e.target.value;
@@ -404,11 +392,6 @@ export class AttendanceUI {
             document.getElementById('bgColor').value = this.optionsManager.options.background;
             document.getElementById('fgColor').value = this.optionsManager.options.foreground;
             document.getElementById('accentColor').value = this.optionsManager.options.accent;
-            
-            // Update map theme if map manager exists
-            if (this.mapManager) {
-                setTimeout(() => this.mapManager.updateMapTheme(), 100);
-            }
         });
         document.getElementById('reset-options').addEventListener('click', () => {
             localStorage.removeItem(this.optionsManager.storageKey);
@@ -416,7 +399,7 @@ export class AttendanceUI {
                 background: '#fffbf7',
                 foreground: '#45372b',
                 accent: '#df7020',
-                attendanceGoal: 55
+                attendanceGoal: DEFAULT_ATTENDANCE_GOAL
             };
             this.optionsManager.applyOptions();
             document.getElementById('bgColor').value = this.optionsManager.options.background;
@@ -424,10 +407,10 @@ export class AttendanceUI {
             document.getElementById('accentColor').value = this.optionsManager.options.accent;
             document.getElementById('themeSelect').value = 'default';
             const slider = document.getElementById('attendanceGoalSlider');
-            slider.value = 55;
-            document.getElementById('attendanceGoalValue').textContent = "55%";
-            this.attendanceGoalPercentage = 55;
-            this.manager.requiredAttendance = Math.floor(this.manager.workingDays * 0.55);
+            slider.value = DEFAULT_ATTENDANCE_GOAL;
+            document.getElementById('attendanceGoalValue').textContent = DEFAULT_ATTENDANCE_GOAL + "%";
+            this.attendanceGoalPercentage = DEFAULT_ATTENDANCE_GOAL;
+            this.manager.requiredAttendance = Math.floor(this.manager.workingDays * (DEFAULT_ATTENDANCE_GOAL / 100));
         });
         document.getElementById('attendanceGoalSlider').addEventListener('input', (e) => {
             const goalPercentage = parseInt(e.target.value, 10);
@@ -443,111 +426,8 @@ export class AttendanceUI {
                 location.reload();
             }
         });
-        
-        // Bind notification settings events
-        this.bindNotificationEvents();
     }
     
-    // ----------------------------
-    // Binds notification settings events
-    // ----------------------------
-    bindNotificationEvents() {
-        // Get notification manager from global scope
-        const notificationManager = window.notificationManager;
-        
-        if (!notificationManager || !notificationManager.isReady()) {
-            console.log('Notification manager not ready, will retry...');
-            // Retry after a short delay to allow notification manager to initialize
-            setTimeout(() => this.bindNotificationEvents(), 200);
-            return;
-        }
-        
-        // Initialize Map Manager
-        if (!this.mapManager) {
-            this.mapManager = new MapManager(notificationManager);
-        } else {
-            // If map manager exists but map might not be initialized, try to reinitialize
-            setTimeout(() => {
-                if (this.mapManager) {
-                    this.mapManager.reinitializeMap();
-                }
-            }, 100);
-        }
-        
-        // Load current settings
-        const settings = notificationManager.getSettings();
-        
-        // Set initial values
-        document.getElementById('enableNotifications').checked = settings.enabled;
-        document.getElementById('notificationDistance').value = settings.maxDistanceMeters;
-        document.getElementById('notificationDistanceValue').textContent = settings.maxDistanceMeters + 'm';
-        document.getElementById('notificationStartTime').value = 
-            String(settings.workingHours.start).padStart(2, '0') + ':00';
-        document.getElementById('notificationEndTime').value = 
-            String(settings.workingHours.end).padStart(2, '0') + ':00';
-        document.getElementById('notificationInterval').value = 
-            Math.floor(settings.checkInterval / (60 * 1000));
-        
-        // Bind events
-        document.getElementById('enableNotifications').addEventListener('change', (e) => {
-            const newSettings = {
-                enabled: e.target.checked
-            };
-            notificationManager.updateSettings(newSettings);
-        });
-        
-        document.getElementById('notificationDistance').addEventListener('input', (e) => {
-            const distance = parseInt(e.target.value, 10);
-            document.getElementById('notificationDistanceValue').textContent = distance + 'm';
-            notificationManager.updateSettings({ maxDistanceMeters: distance });
-        });
-        
-        document.getElementById('notificationStartTime').addEventListener('change', (e) => {
-            const time = e.target.value;
-            const hour = parseInt(time.split(':')[0], 10);
-            notificationManager.updateSettings({
-                workingHours: {
-                    ...notificationManager.getSettings().workingHours,
-                    start: hour
-                }
-            });
-        });
-        
-        document.getElementById('notificationEndTime').addEventListener('change', (e) => {
-            const time = e.target.value;
-            const hour = parseInt(time.split(':')[0], 10);
-            notificationManager.updateSettings({
-                workingHours: {
-                    ...notificationManager.getSettings().workingHours,
-                    end: hour
-                }
-            });
-        });
-        
-        document.getElementById('notificationInterval').addEventListener('change', (e) => {
-            const minutes = parseInt(e.target.value, 10);
-            const interval = minutes * 60 * 1000; // Convert to milliseconds
-            notificationManager.updateSettings({ checkInterval: interval });
-        });
-        
-        document.getElementById('testNotification').addEventListener('click', () => {
-            notificationManager.testNotification();
-        });
-        
-        document.getElementById('requestPermission').addEventListener('click', async () => {
-            const permission = await notificationManager.requestNotificationPermission();
-            if (permission === 'granted') {
-                alert('Notification permission granted!');
-            } else {
-                alert('Notification permission denied. Please enable notifications in your browser settings.');
-            }
-        });
-        
-        document.getElementById('clearNotificationHistory').addEventListener('click', () => {
-            notificationManager.clearNotificationHistory();
-            alert('Notification history cleared! You can now receive notifications again today.');
-        });
-    }
     
 
 

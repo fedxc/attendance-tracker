@@ -1,5 +1,8 @@
 import { calculateWorkingDays } from './utils.js';
 
+// Default attendance goal percentage
+const DEFAULT_ATTENDANCE_GOAL = 55;
+
 export class AttendanceManager {
     constructor(year, month, history) {
         this.year = year;
@@ -9,7 +12,7 @@ export class AttendanceManager {
         this.attendanceDays = this.loadAttendance();
         this.workingDays = calculateWorkingDays(year, month);
         // Default attendance goal is set to 55% (can be updated via the slider)
-        this.requiredAttendance = Math.floor(this.workingDays * 0.55);
+        this.requiredAttendance = Math.floor(this.workingDays * (DEFAULT_ATTENDANCE_GOAL / 100));
     }
 
     loadAttendance() {

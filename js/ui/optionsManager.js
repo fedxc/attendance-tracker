@@ -1,3 +1,6 @@
+// Default attendance goal percentage
+const DEFAULT_ATTENDANCE_GOAL = 55;
+
 export class OptionsManager {
     constructor() {
         this.storageKey = 'customOptions';
@@ -5,7 +8,7 @@ export class OptionsManager {
             background: getComputedStyle(document.documentElement).getPropertyValue('--color-bg').trim(),
             foreground: getComputedStyle(document.documentElement).getPropertyValue('--color-text').trim(),
             accent: getComputedStyle(document.documentElement).getPropertyValue('--color-progress-fill').trim(),
-            attendanceGoal: 55
+            attendanceGoal: DEFAULT_ATTENDANCE_GOAL
         };
         this.loadOptions();
     }

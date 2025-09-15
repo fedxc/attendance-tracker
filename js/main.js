@@ -1,7 +1,7 @@
 import { AttendanceHistory } from './attendance/history.js';
 import { AttendanceManager } from './attendance/manager.js';
 import { AttendanceUI } from './ui/ui.js';
-import { NotificationManager } from './notificationManager.js';
+import { calculateWorkingDays } from './attendance/utils.js';
 
 const today = new Date();
 const year = today.getFullYear();
@@ -9,28 +9,9 @@ const month = today.getMonth(); // 0-indexed
 const attendanceHistory = new AttendanceHistory();
 const attendanceManager = new AttendanceManager(year, month, attendanceHistory);
 
-// Initialize notification manager first
-const notificationManager = new NotificationManager();
-
-// Make notification manager globally accessible for UI
-window.notificationManager = notificationManager;
-
-// Initialize UI after notification manager is ready
+// Initialize UI
 const attendanceUI = new AttendanceUI(attendanceManager, today);
 
-// Handle attendance marking from notifications
-document.addEventListener('markAttendance', (event) => {
-    const { day } = event.detail;
-    if (day === today.getDate() && !attendanceManager.hasAttendance(day)) {
-        attendanceManager.addAttendance(day);
-        attendanceUI.updateAll();
-        
-        // Clear notification history since attendance was marked
-        if (window.notificationManager) {
-            window.notificationManager.clearNotificationHistory();
-        }
-    }
-});
 
 const reloadIntervalMinutes = 60;
 localStorage.setItem("lastReload", Date.now());
@@ -49,61 +30,6 @@ document.addEventListener("visibilitychange", () => {
 });
 
 
-// Optional Helper Functions for Testing
-window.clearAttendance = () => {
-    attendanceManager.clearAttendance();
-    attendanceUI.updateAll();
-};
-window.exportAttendance = () => {
-    attendanceHistory.data && Object.values(attendanceHistory.data).forEach(monthEntries => {
-        monthEntries.forEach(entry => {
-            console.log(`Day: ${entry.day}, Month: ${entry.month}, Year: ${entry.year}`);
-        });
-    });
-};
-window.addAttendanceMark = (day, m, y) => {
-    const date = new Date(y, m, day);
-    if (date.getMonth() === m && date.getDate() === day && date.getFullYear() === y) {
-        const monthForStorage = m + 1;
-        const entries = attendanceHistory.getMonthData(y, monthForStorage);
-        if (!entries.some(d => d.day === day)) {
-            entries.push({ day, month: monthForStorage, year: y });
-            attendanceHistory.saveMonthData(y, monthForStorage, entries);
-            attendanceUI.updateAll();
-        } else {
-            console.log("This date is already marked.");
-        }
-    } else {
-        console.log("Invalid date.");
-    }
-};
-window.addAttendanceDays = function (days) {
-    for (let i = 0; i < days; i++) {
-        if (attendanceManager.getCount() < attendanceManager.workingDays) {
-            const date = new Date(attendanceManager.year, attendanceManager.month, attendanceManager.getCount() + 1);
-            attendanceManager.addAttendance(date.getDate());
-        }
-    }
-    attendanceUI.updateAll();
-};
-window.clearAllAttendance = function () {
-    localStorage.removeItem('attendanceHistory');
-    console.log('All attendance data cleared! Fresh start achieved.');
-    location.reload();
-};
-window.createFakeMarkData = function () {
-    const year = new Date().getFullYear();
-    for (let m = 1; m <= 12; m++) {
-        const daysInMonth = new Date(year, m, 0).getDate();
-        const randomDays = new Set();
-        while (randomDays.size < 10) {
-            randomDays.add(Math.floor(Math.random() * daysInMonth) + 1);
-        }
-        randomDays.forEach(day => {
-            window.addAttendanceMark(day, m - 1, year);
-        });
-    }
-};
 
 
 // Simple cache clearing

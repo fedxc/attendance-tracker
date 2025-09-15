@@ -1,6 +1,6 @@
 # Attendance Tracker
 
-A modern, client-side web application for tracking daily attendance with intelligent location-based notifications. Built with vanilla JavaScript, it provides a comprehensive attendance management system that works entirely in your browser.
+A modern, client-side web application for tracking daily attendance. Built with vanilla JavaScript, it provides a comprehensive attendance management system that works entirely in your browser.
 
 ## Features
 
@@ -10,13 +10,6 @@ A modern, client-side web application for tracking daily attendance with intelli
 - **Configurable Goals**: Set attendance percentage goals (0-100%) with real-time updates
 - **Working Day Calculation**: Automatically excludes weekends and holidays
 - **Data Persistence**: All data stored locally using localStorage
-
-### Location-Based Notifications
-- **Background Monitoring**: Get notified when you're near the office, even with the tab closed
-- **Interactive Map**: Visual office location selector using Leaflet maps
-- **Smart Scheduling**: Only checks during configured working hours on weekdays
-- **Configurable Settings**: Adjust distance, working hours, and check frequency
-- **Rich Notifications**: Action buttons to mark attendance or snooze reminders
 
 ### User Interface
 - **Modern Brutalist Design**: Clean, accessible interface with customizable themes
@@ -41,18 +34,14 @@ attendance-tracker/
 ├── js/
 │   ├── main.js            # Application entry point
 │   ├── helpers.js         # Utility functions and theme definitions
-│   ├── notificationManager.js  # Service worker and notification handling
 │   ├── attendance/
 │   │   ├── history.js     # LocalStorage persistence
 │   │   ├── manager.js     # Attendance logic and calculations
 │   │   └── utils.js       # Working day and holiday calculations
 │   └── ui/
 │       ├── ui.js          # Main UI rendering and interactions
-│       ├── optionsManager.js  # User preference handling
-│       └── mapManager.js  # Interactive map for location selection
-├── sw.js                  # Service worker for background notifications
+│       └── optionsManager.js  # User preference handling
 ├── tests/                 # Unit tests
-│   ├── calculateDistance.test.js
 │   └── calculateWorkingDays.test.js
 └── package.json           # Project configuration
 ```
@@ -61,7 +50,7 @@ attendance-tracker/
 
 ### Prerequisites
 - Modern web browser (Chrome, Firefox, Edge, Safari)
-- Local web server (required for service workers)
+- Local web server (recommended for best experience)
 
 ### Installation
 1. Clone the repository:
@@ -95,31 +84,6 @@ If you're experiencing cache issues:
 3. **View Progress**: See your progress toward the goal with the visual progress ring
 4. **Export Data**: Click "Log" to view history and export to CSV
 
-## Location Notifications Setup
-
-### Initial Configuration
-1. Click the gear icon to open options
-2. Scroll to "Location Notifications" section
-3. **Set Office Location**:
-   - Use the interactive map to drag the marker to your office
-   - Or click "Use Current Location" to automatically set your position
-   - Or click "Reset to Default" to use the default location
-4. Enable "Background notifications"
-5. Grant notification and location permissions when prompted
-
-### Configuration Options
-- **Working Hours**: Set start and end times for monitoring
-- **Distance**: Adjust the radius (0-1000m) for location detection
-- **Check Frequency**: Choose how often to check location (5 min to 1 hour)
-- **Test Notifications**: Use the "Test" button to verify setup
-
-### How It Works
-- The service worker runs in the background, even when the tab is closed
-- Location is checked during configured working hours on weekdays
-- Notifications appear when you're within the specified distance of the office
-- Click "Mark Attendance" in the notification to quickly record attendance
-- All location data stays local - no server communication
-
 ## Customization
 
 ### Themes
@@ -151,7 +115,7 @@ The app includes 11 preset themes:
 ### Reset Options
 - **Reset Monthly**: Clear attendance for the current month only
 - **Reset All Data**: Complete data wipe for a fresh start
-- **Reset Options**: Restore default theme and notification settings
+- **Reset Options**: Restore default theme settings
 
 ## Testing
 
@@ -161,23 +125,21 @@ npm test
 ```
 
 Tests cover:
-- Distance calculation accuracy
 - Working day calculations (weekends and holidays)
 - Holiday detection for various regions
 
 ## Browser Support
 
-- **Chrome**: Full support including background notifications
-- **Firefox**: Full support including background notifications
-- **Edge**: Full support including background notifications
-- **Safari**: Basic functionality (limited service worker support)
+- **Chrome**: Full support
+- **Firefox**: Full support
+- **Edge**: Full support
+- **Safari**: Full support
 
 ## Privacy & Security
 
 - **Local Storage**: All data stays on your device
 - **No Server Communication**: No data is sent to external servers
-- **Location Privacy**: Location data is only used for notifications and never transmitted
-- **Service Worker**: Runs locally for background functionality
+- **Client-Side Only**: Everything runs in your browser
 
 ## Contributing
 
@@ -193,8 +155,7 @@ This project is open source and available under the [MIT License](LICENSE).
 
 ## Version
 
-Current version: v2.2.1
-
+Current version: v2.2.2
 
 ## Cache Management
 
@@ -205,10 +166,6 @@ The application uses simple version parameters to prevent cache issues:
 2. Update the version in `index.html`:
    ```html
    <link rel="stylesheet" href="css/style.css?v=2.2.3">
-   ```
-3. Also update the service worker cache name in `sw.js`:
-   ```javascript
-   const CACHE_NAME = "attendance-tracker-v2.2.3";
    ```
 
 ### Manual Cache Clearing

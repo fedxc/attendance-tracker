@@ -11,7 +11,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
   <link rel="stylesheet" href="css/style.css?v=2.2.2">
 </head>
 
@@ -78,66 +77,6 @@
       <span id="attendanceGoalValue">55%</span>
     </div>
     
-    <!-- Notification Settings -->
-    <div class="notification-settings">
-      <h3>Location Notifications</h3>
-      <div class="setting-group">
-        <label for="enableNotifications">
-          <input type="checkbox" id="enableNotifications">
-          Enable background notifications
-        </label>
-      </div>
-      
-      <!-- Office Location Map -->
-      <div class="setting-group">
-        <label>Office Location</label>
-        <div class="map-container">
-          <div id="officeLocationMap"></div>
-          <div class="map-controls">
-            <button class="brutalist-btn compact" id="useCurrentLocation">Use Current Location</button>
-            <button class="brutalist-btn compact" id="resetLocation">Reset to Default</button>
-          </div>
-          <div class="coordinates-display">
-            <span>Latitude: <span id="selectedLatitude">-34.9027297</span></span>
-            <span>Longitude: <span id="selectedLongitude">-56.1342857</span></span>
-          </div>
-        </div>
-      </div>
-      
-      <div class="settings-row">
-        <div class="setting-group compact">
-          <label for="notificationStartTime">Start</label>
-          <input type="time" id="notificationStartTime" value="09:00">
-        </div>
-        <div class="setting-group compact">
-          <label for="notificationEndTime">End</label>
-          <input type="time" id="notificationEndTime" value="18:00">
-        </div>
-      </div>
-      
-      <div class="attendance-goal-slider">
-        <label for="notificationDistance">Distance</label>
-        <input type="range" id="notificationDistance" class="custom-slider" min="0" max="1000" value="550" step="50">
-        <span id="notificationDistanceValue">550m</span>
-      </div>
-      
-      <div class="setting-group">
-        <label for="notificationInterval">Check every</label>
-        <select id="notificationInterval">
-          <option value="5">5 minutes</option>
-          <option value="10">10 minutes</option>
-          <option value="15" selected>15 minutes</option>
-          <option value="30">30 minutes</option>
-          <option value="60">1 hour</option>
-        </select>
-      </div>
-      
-      <div class="button-row">
-        <button class="brutalist-btn compact" id="testNotification">Test</button>
-        <button class="brutalist-btn compact" id="requestPermission">Permission</button>
-        <button class="brutalist-btn compact" id="clearNotificationHistory">Clear</button>
-      </div>
-    </div>
     
     <button class="brutalist-btn" id="reset-options" style="margin-top: 20px;">Reset options</button>
     <div class="reset-full-data">
@@ -169,7 +108,6 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   <script type="module" src="js/main.js?v=2.2.2"></script>
 </body>
 </html>
