@@ -96,7 +96,7 @@ test('Attendance goal calculation integration', () => {
     assert.strictEqual(workingDays, 22);
     
     // Default goal is 55%
-    const expectedRequired = Math.floor(workingDays * 0.55);
+    const expectedRequired = Math.round(workingDays * 0.55);
     assert.strictEqual(manager.requiredAttendance, expectedRequired);
     assert.strictEqual(manager.requiredAttendance, 12);
 });
@@ -230,12 +230,12 @@ test('Attendance goal percentage calculation', () => {
         { goal: 50, expected: 11 }, // 50% of 22 = 11
         { goal: 55, expected: 12 }, // 55% of 22 = 12.1 -> 12
         { goal: 60, expected: 13 }, // 60% of 22 = 13.2 -> 13
-        { goal: 75, expected: 16 }, // 75% of 22 = 16.5 -> 16
+        { goal: 75, expected: 17 }, // 75% of 22 = 16.5 -> 17 (rounded)
         { goal: 100, expected: 22 } // 100% of 22 = 22
     ];
     
     testCases.forEach(({ goal, expected }) => {
-        manager.requiredAttendance = Math.floor(manager.workingDays * (goal / 100));
+        manager.requiredAttendance = Math.round(manager.workingDays * (goal / 100));
         assert.strictEqual(manager.requiredAttendance, expected, 
             `${goal}% of ${manager.workingDays} working days should be ${expected}`);
     });

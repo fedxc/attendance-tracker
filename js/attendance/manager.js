@@ -11,7 +11,7 @@ export class AttendanceManager {
         this.attendanceDays = this.loadAttendance();
         this.workingDays = calculateWorkingDays(year, month);
         // Default attendance goal is set to 55% (can be updated via the slider)
-        this.requiredAttendance = Math.floor(this.workingDays * (CONFIG.DEFAULT_ATTENDANCE_GOAL / 100));
+        this.requiredAttendance = Math.round(this.workingDays * (CONFIG.DEFAULT_ATTENDANCE_GOAL / 100));
     }
 
     loadAttendance() {
@@ -70,7 +70,7 @@ export class AttendanceManager {
         if (!Validation.validateAttendanceGoal(goalPercentage)) {
             throw new Error('Goal percentage must be between 0 and 100');
         }
-        this.requiredAttendance = Math.floor(this.workingDays * (goalPercentage / 100));
+        this.requiredAttendance = Math.round(this.workingDays * (goalPercentage / 100));
     }
 
     /**

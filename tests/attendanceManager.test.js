@@ -170,11 +170,11 @@ test('requiredAttendance is calculated correctly for different months', () => {
     mockLocalStorage.clear();
     const history = new AttendanceHistory();
     
-    // February 2024 (leap year) - 21 working days, 55% = 11
+    // February 2024 (leap year) - 21 working days, 55% = 12 (rounded)
     const febManager = new AttendanceManager(2024, 1, history);
-    assert.strictEqual(febManager.requiredAttendance, 11);
+    assert.strictEqual(febManager.requiredAttendance, 12);
     
-    // March 2024 - 20 working days (minus Carnival), 55% = 11
+    // March 2024 - 20 working days (minus Carnival), 55% = 11 (rounded)
     const marManager = new AttendanceManager(2024, 2, history);
     assert.strictEqual(marManager.requiredAttendance, 11);
 });
