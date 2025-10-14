@@ -3,13 +3,11 @@
 // Centralized configuration - single source of truth
 export const CONFIG = {
     DEFAULT_ATTENDANCE_GOAL: 55,
-    RELOAD_INTERVAL_MINUTES: 60,
     CONFETTI_COUNT: 150,
     ANIMATION_DURATION: 300,
     STORAGE_KEYS: {
         ATTENDANCE_HISTORY: 'attendanceHistory',
-        CUSTOM_OPTIONS: 'customOptions',
-        LAST_RELOAD: 'lastReload'
+        CUSTOM_OPTIONS: 'customOptions'
     }
 };
 

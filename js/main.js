@@ -14,21 +14,6 @@ const attendanceManager = new AttendanceManager(year, month, attendanceHistory);
 const attendanceUI = new AttendanceUI(attendanceManager, today);
 
 
-const reloadIntervalMinutes = CONFIG.RELOAD_INTERVAL_MINUTES;
-localStorage.setItem(CONFIG.STORAGE_KEYS.LAST_RELOAD, Date.now());
-document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") {
-        const lastReload = parseInt(localStorage.getItem(CONFIG.STORAGE_KEYS.LAST_RELOAD), 10);
-        const now = Date.now();
-        const minutesPassed = (now - lastReload) / (1000 * 60);
-        if (minutesPassed > reloadIntervalMinutes) {
-            localStorage.setItem(CONFIG.STORAGE_KEYS.LAST_RELOAD, now);
-            location.reload();
-        } else {
-            console.log("Data is still fresh, no reload needed");
-        }
-    }
-});
 
 
 
