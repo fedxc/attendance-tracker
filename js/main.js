@@ -3,6 +3,7 @@ import { AttendanceManager } from './attendance/manager.js';
 import { AttendanceUI } from './ui/ui.js';
 import { calculateWorkingDays } from './attendance/utils.js';
 import { CONFIG } from './helpers.js';
+import { initStaleReload } from './utils/StaleReloadManager.js';
 
 const today = new Date();
 const year = today.getFullYear();
@@ -18,27 +19,7 @@ const attendanceUI = new AttendanceUI(attendanceManager, today);
 
 
 
-// Auto-reload stale sessions
-// Reloads when the tab becomes visible again if midnight has passed since load,
-// or if the page has been loaded for longer than STALENESS_THRESHOLD_MS.
-const STALENESS_THRESHOLD_MS = 8 * 60 * 60 * 1000; // 8 hours
-
-(function initStaleReload() {
-    const loadedAt = Date.now();
-    const loadedDay = new Date(loadedAt).toDateString();
-
-    document.addEventListener("visibilitychange", () => {
-        if (document.visibilityState !== "visible") return;
-
-        const now = Date.now();
-        const currentDay = new Date(now).toDateString();
-        const elapsed = now - loadedAt;
-
-        if (currentDay !== loadedDay || elapsed >= STALENESS_THRESHOLD_MS) {
-            window.location.reload();
-        }
-    });
-})();
+initStaleReload();
 
 // Simple cache clearing
 document.addEventListener("DOMContentLoaded", () => {
