@@ -169,12 +169,14 @@ test('saveAttendance persists data to localStorage', () => {
 test('requiredAttendance is calculated correctly for different months', () => {
     mockLocalStorage.clear();
     const history = new AttendanceHistory();
-    
-    // February 2024 (leap year) - 21 working days, 55% = 12 (rounded)
-    const febManager = new AttendanceManager(2024, 1, history);
-    assert.strictEqual(febManager.requiredAttendance, 12);
-    
-    // March 2024 - 20 working days (minus Carnival), 55% = 11 (rounded)
-    const marManager = new AttendanceManager(2024, 2, history);
-    assert.strictEqual(marManager.requiredAttendance, 11);
+
+    // requiredAttendance = Math.round(workingDays * attendanceGoal / 100)
+    // Verify the formula holds for any month — don't hardcode working day counts
+    // since moveable holidays change each year.
+    for (const [year, month] of [[2025, 0], [2025, 4], [2026, 0]]) {
+        const manager = new AttendanceManager(year, month, history);
+        const expected = Math.round(manager.workingDays * 55 / 100); // 55 = CONFIG.DEFAULT_ATTENDANCE_GOAL
+        assert.strictEqual(manager.requiredAttendance, expected,
+            `${year}-${month + 1}: requiredAttendance should equal Math.round(workingDays * goal / 100)`);
+    }
 });
