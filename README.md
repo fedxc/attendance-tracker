@@ -38,11 +38,20 @@ attendance-tracker/
 │   │   ├── history.js     # LocalStorage persistence
 │   │   ├── manager.js     # Attendance logic and calculations
 │   │   └── utils.js       # Working day and holiday calculations
-│   └── ui/
-│       ├── ui.js          # Main UI rendering and interactions
-│       └── optionsManager.js  # User preference handling
+│   ├── ui/
+│   │   ├── ui.js          # Main UI rendering and interactions
+│   │   └── optionsManager.js  # User preference handling
+│   └── utils/
+│       ├── ErrorHandler.js    # Centralised error handling
+│       ├── StaleReloadManager.js  # Auto-reload stale sessions
+│       └── Validation.js      # Input validation helpers
 ├── tests/                 # Unit tests
-│   └── calculateWorkingDays.test.js
+│   ├── attendanceHistory.test.js
+│   ├── attendanceManager.test.js
+│   ├── attendanceUtils.test.js
+│   ├── helpers.test.js
+│   ├── integration.test.js
+│   └── optionsManager.test.js
 └── package.json           # Project configuration
 ```
 
@@ -55,7 +64,7 @@ attendance-tracker/
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:fedxc/attendance-tracker.git
    cd attendance-tracker
    ```
 
@@ -125,8 +134,11 @@ npm test
 ```
 
 Tests cover:
-- Working day calculations (weekends and holidays)
-- Holiday detection for various regions
+- Attendance history persistence and retrieval
+- Working day calculations (weekends and Uruguayan holidays)
+- Attendance manager logic and goal calculations
+- Options manager and theme persistence
+- Integration across all components
 
 ## Browser Support
 
@@ -153,23 +165,3 @@ Tests cover:
 
 This project is open source and available under the [MIT License](LICENSE).
 
-## Version
-
-Current version: v2.2.2
-
-## Cache Management
-
-The application uses simple version parameters to prevent cache issues:
-
-### For CSS Changes
-1. Make your changes in `css/style.css`
-2. Update the version in `index.html`:
-   ```html
-   <link rel="stylesheet" href="css/style.css?v=2.2.3">
-   ```
-
-### Manual Cache Clearing
-If you experience cache issues:
-1. Open the options menu (gear icon)
-2. Click "Clear cache" button
-3. The page will reload with fresh content
