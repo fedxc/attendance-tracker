@@ -20,23 +20,3 @@ const attendanceUI = new AttendanceUI(attendanceManager, today);
 
 
 initStaleReload();
-
-// Simple cache clearing
-document.addEventListener("DOMContentLoaded", () => {
-    const clearCacheBtn = document.getElementById("clearCacheBtn");
-    if (clearCacheBtn) {
-        clearCacheBtn.addEventListener("click", async () => {
-            try {
-                if ("caches" in window) {
-                    const cacheNames = await caches.keys();
-                    await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
-                }
-                alert("Cache cleared! The page will reload.");
-                window.location.reload(true);
-            } catch (error) {
-                console.error("Error clearing cache:", error);
-                alert("Error clearing cache. Please try again.");
-            }
-        });
-    }
-});

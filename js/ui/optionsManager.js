@@ -77,4 +77,23 @@ export class OptionsManager {
         this.saveOptions();
         this.applyOptions();
     }
+
+    initClearCache() {
+        const clearCacheBtn = document.getElementById("clearCacheBtn");
+        if (clearCacheBtn) {
+            clearCacheBtn.addEventListener("click", async () => {
+                try {
+                    if ("caches" in window) {
+                        const cacheNames = await caches.keys();
+                        await Promise.all(cacheNames.map(cacheName => caches.delete(cacheName)));
+                    }
+                    alert("Cache cleared! The page will reload.");
+                    window.location.reload(true);
+                } catch (error) {
+                    console.error("Error clearing cache:", error);
+                    alert("Error clearing cache. Please try again.");
+                }
+            });
+        }
+    }
 }

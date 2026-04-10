@@ -32,6 +32,7 @@ export class AttendanceUI {
 
         // Initialize Options Manager and bind options events
         this.optionsManager = new OptionsManager();
+        this.optionsManager.initClearCache();
         this.bindOptionsEvents();
         document.getElementById('bgColor').value = this.optionsManager.options.background;
         document.getElementById('fgColor').value = this.optionsManager.options.foreground;
